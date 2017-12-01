@@ -6,18 +6,6 @@ from .models import User
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.core.urlresolvers import reverse
-
-# Create your tests here.
-class ModelTestCase(TestCase):
-    def setup(self):
-        self.user_name = "test user"
-        self.User = User(name=self.user_name)
-    
-    def test_model_can_create_a_user(self):
-        old_count = User.objects.count()
-        self.User.save()
-        new_count = User.objects.count()
-        self.assertNotEqual(old_count,new_count)
         
 class ViewTestCase(TestCase):
     """Test suite for the api views."""
@@ -31,6 +19,36 @@ class ViewTestCase(TestCase):
             self.user_data,
             format="json")
 
-    def test_api_can_create_a_bucketlist(self):
-        """Test the api has bucket creation capability."""
+    def test_api_can_create_a_user(self):
+        """Test the api has user creation capability."""
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        
+    def test_api_can_get_a_user(self):
+        """Test the api can get a user."""
+        user = User.objects.get()
+        response = self.client.get(
+            reverse('details',
+            kwargs={'pk': user.id}), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, user)
+
+    def test_api_can_update_bucketlist(self):
+        """Test the api can update a user."""
+        user = User.objects.get()
+        change_user = {'name': 'Something new'}
+        res = self.client.put(
+            reverse('details', kwargs={'pk': user.id}),
+            change_user, format='json'
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_api_can_delete_bucketlist(self):
+        """Test the api can delete a user."""
+        user = User.objects.get()
+        response = self.client.delete(
+            reverse('details', kwargs={'pk': user.id}),
+            format='json',
+            follow=True)
+
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
